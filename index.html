@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Automation ROI Calculator — ARDOT Consulting</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --accent: #6c5ce7;
+    --accent2: #00b894;
+    --text: #e2e2e2;
+    --muted: #888;
+    --border: #2a2d3a;
+    --input-bg: #12141c;
+    --positive: #00b894;
+    --negative: #e74c3c;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  .container { max-width: 900px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+  header { text-align: center; margin-bottom: 2.5rem; }
+  header h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: .3rem; }
+  header p { color: var(--muted); font-size: .95rem; }
+  header a { color: var(--accent2); text-decoration: none; }
+  header a:hover { text-decoration: underline; }
+
+  .section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .section h2 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .section h2 .lever-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    background: var(--accent);
+    border-radius: 50%;
+    font-size: .85rem;
+    font-weight: 700;
+  }
+
+  .input-row { display: flex; align-items: center; gap: .75rem; margin-bottom: .8rem; flex-wrap: wrap; }
+  .input-row label { flex: 1 1 200px; font-size: .9rem; color: var(--muted); min-width: 150px; }
+  .input-row input {
+    flex: 0 1 120px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .5rem .75rem;
+    color: var(--text);
+    font-size: .9rem;
+    width: 120px;
+  }
+  .input-row input:focus { outline: none; border-color: var(--accent); }
+  .input-row .suffix { flex: 0 0 auto; color: var(--muted); font-size: .85rem; }
+  .lever-result {
+    margin-top: .5rem;
+    padding: .6rem 1rem;
+    background: var(--input-bg);
+    border-radius: 6px;
+    border-left: 3px solid var(--accent2);
+    font-size: .95rem;
+  }
+  .lever-result strong { color: var(--accent2); }
+
+  .results {
+    background: linear-gradient(135deg, #1a1d27, #232639);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  .results h2 { justify-content: center; margin-bottom: 1.5rem; }
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1.5rem; }
+  .result-card {
+    background: var(--input-bg);
+    border-radius: 10px;
+    padding: 1.2rem .8rem;
+  }
+  .result-card .label { font-size: .8rem; color: var(--muted); margin-bottom: .4rem; text-transform: uppercase; letter-spacing: .5px; }
+  .result-card .value { font-size: 1.6rem; font-weight: 700; }
+  .result-card .value.positive { color: var(--positive); }
+  .result-card .value.negative { color: var(--negative); }
+
+  .breakdown { margin-top: 1.5rem; text-align: left; }
+  .breakdown table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  .breakdown th { text-align: left; color: var(--muted); padding: .5rem 0; border-bottom: 1px solid var(--border); }
+  .breakdown td { padding: .5rem 0; border-bottom: 1px solid var(--border); }
+  .breakdown td:last-child, .breakdown th:last-child { text-align: right; }
+  .breakdown tfoot td { font-weight: 700; border-top: 2px solid var(--accent); border-bottom: none; padding-top: .8rem; }
+
+  .costs .input-row label { min-width: 220px; }
+  .cost-result {
+    margin-top: .5rem; padding: .6rem 1rem;
+    background: var(--input-bg); border-radius: 6px;
+    border-left: 3px solid var(--accent);
+    font-size: .95rem;
+  }
+  .cost-result strong { color: var(--accent); }
+
+  .preset-bar { text-align: center; margin-bottom: 1.5rem; }
+  .preset-bar button {
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--text); padding: .5rem 1rem; border-radius: 6px;
+    cursor: pointer; font-size: .85rem; margin: 0 .3rem .3rem;
+    transition: all .2s;
+  }
+  .preset-bar button:hover { border-color: var(--accent); background: var(--input-bg); }
+
+  footer { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 2rem; }
+  footer a { color: var(--accent2); text-decoration: none; }
+
+  @media (max-width: 600px) {
+    .input-row label { flex: 1 1 100%; }
+    .input-row input { flex: 1 1 100%; }
+    header h1 { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>AI Automation ROI Calculator</h1>
+    <p>Based on <a href="https://www.ardotconsulting.com/blog/2026/08/24/the-real-roi-of-ai-automation-how-to-measure-it/" target="_blank" rel="noopener">The Real ROI of AI Automation: How to Measure It</a></p>
+  </header>
+
+  <div class="preset-bar">
+    <button onclick="loadPreset('accounting')">Accounting Firm</button>
+    <button onclick="loadPreset('ecommerce')">E-Commerce</button>
+    <button onclick="loadPreset('consulting')">Consulting Firm</button>
+    <button onclick="loadPreset('law')">Law Firm</button>
+    <button onclick="resetForm()">Clear</button>
+  </div>
+
+  <!-- Lever 1: Time Saved -->
+  <div class="section">
+    <h2><span class="lever-num">1</span> Time Saved</h2>
+    <div class="input-row">
+      <label>Manual time per task</label>
+      <input type="number" id="manualMinutes" value="8" min="0" step="0.1">
+      <span class="suffix">minutes</span>
+    </div>
+    <div class="input-row">
+      <label>Automated time per task</label>
+      <input type="number" id="autoMinutes" value="1" min="0" step="0.1">
+      <span class="suffix">minutes</span>
+    </div>
+    <div class="input-row">
+      <label>Tasks per month</label>
+      <input type="number" id="taskVolume" value="200" min="0" step="1">
+      <span class="suffix">tasks</span>
+    </div>
+    <div class="input-row">
+      <label>Labor cost rate</label>
+      <input type="number" id="laborRate" value="35" min="0" step="1">
+      <span class="suffix">$/hour</span>
+    </div>
+    <div class="lever-result" id="timeSavedResult">Time saved: <strong>$819/month</strong> (23.4 hours saved)</div>
+  </div>
+
+  <!-- Lever 2: Error Reduction -->
+  <div class="section">
+    <h2><span class="lever-num">2</span> Error Reduction</h2>
+    <div class="input-row">
+      <label>Old error rate</label>
+      <input type="number" id="oldErrorRate" value="8" min="0" max="100" step="0.1">
+      <span class="suffix">%</span>
+    </div>
+    <div class="input-row">
+      <label>New error rate</label>
+      <input type="number" id="newErrorRate" value="1" min="0" max="100" step="0.1">
+      <span class="suffix">%</span>
+    </div>
+    <div class="input-row">
+      <label>Monthly volume</label>
+      <input type="number" id="errorVolume" value="500" min="0" step="1">
+      <span class="suffix">items</span>
+    </div>
+    <div class="input-row">
+      <label>Cost per error</label>
+      <input type="number" id="costPerError" value="45" min="0" step="1">
+      <span class="suffix">$/error</span>
+    </div>
+    <div class="lever-result" id="errorResult">Error cost saved: <strong>$1,575/month</strong></div>
+  </div>
+
+  <!-- Lever 3: Throughput Increase -->
+  <div class="section">
+    <h2><span class="lever-num">3</span> Throughput Increase</h2>
+    <div class="input-row">
+      <label>Old capacity (monthly)</label>
+      <input type="number" id="oldCapacity" value="40" min="0" step="1">
+      <span class="suffix">units</span>
+    </div>
+    <div class="input-row">
+      <label>New capacity (monthly)</label>
+      <input type="number" id="newCapacity" value="80" min="0" step="1">
+      <span class="suffix">units</span>
+    </div>
+    <div class="input-row">
+      <label>Revenue per unit</label>
+      <input type="number" id="revenuePerUnit" value="2000" min="0" step="100">
+      <span class="suffix">$/unit</span>
+    </div>
+    <div class="input-row">
+      <label>Utilization of added capacity</label>
+      <input type="number" id="utilization" value="50" min="0" max="100" step="5">
+      <span class="suffix">%</span>
+    </div>
+    <div class="lever-result" id="throughputResult">Throughput value: <strong>$40,000/month</strong></div>
+  </div>
+
+  <!-- Lever 4: Employee Retention -->
+  <div class="section">
+    <h2><span class="lever-num">4</span> Employee Retention</h2>
+    <div class="input-row">
+      <label>Number of employees</label>
+      <input type="number" id="employeeCount" value="20" min="0" step="1">
+      <span class="suffix">employees</span>
+    </div>
+    <div class="input-row">
+      <label>Old turnover rate</label>
+      <input type="number" id="oldTurnover" value="20" min="0" max="100" step="0.5">
+      <span class="suffix">%</span>
+    </div>
+    <div class="input-row">
+      <label>New turnover rate</label>
+      <input type="number" id="newTurnover" value="10" min="0" max="100" step="0.5">
+      <span class="suffix">%</span>
+    </div>
+    <div class="input-row">
+      <label>Cost to replace an employee</label>
+      <input type="number" id="replacementCost" value="15000" min="0" step="500">
+      <span class="suffix">$/employee</span>
+    </div>
+    <div class="lever-result" id="retentionResult">Retention value: <strong>$2,500/month</strong></div>
+  </div>
+
+  <!-- Costs -->
+  <div class="section costs">
+    <h2>💵 Monthly Automation Costs</h2>
+    <div class="input-row">
+      <label>Software / hosting</label>
+      <input type="number" id="costSoftware" value="20" min="0" step="5">
+      <span class="suffix">$/month</span>
+    </div>
+    <div class="input-row">
+      <label>Developer time (amortized)</label>
+      <input type="number" id="costDev" value="200" min="0" step="10">
+      <span class="suffix">$/month</span>
+    </div>
+    <div class="input-row">
+      <label>Maintenance & monitoring</label>
+      <input type="number" id="costMaintenance" value="100" min="0" step="10">
+      <span class="suffix">$/month</span>
+    </div>
+    <div class="input-row">
+      <label>Other costs</label>
+      <input type="number" id="costOther" value="0" min="0" step="10">
+      <span class="suffix">$/month</span>
+    </div>
+    <div class="cost-result" id="costResult">Total monthly cost: <strong>$320/month</strong></div>
+  </div>
+
+  <!-- Upfront cost for payback period -->
+  <div class="section costs">
+    <h2>🏗️ Upfront Setup Cost (for payback period)</h2>
+    <div class="input-row">
+      <label>Total one-time setup cost</label>
+      <input type="number" id="upfrontCost" value="3000" min="0" step="100">
+      <span class="suffix">$</span>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="results">
+    <h2>📊 Your ROI Summary</h2>
+    <div class="result-grid">
+      <div class="result-card">
+        <div class="label">Monthly Benefit</div>
+        <div class="value positive" id="totalBenefit">$44,894</div>
+      </div>
+      <div class="result-card">
+        <div class="label">Monthly Cost</div>
+        <div class="value" id="totalCost">$320</div>
+      </div>
+      <div class="result-card">
+        <div class="label">Net Monthly Gain</div>
+        <div class="value positive" id="netGain">$44,574</div>
+      </div>
+      <div class="result-card">
+        <div class="label">ROI</div>
+        <div class="value positive" id="roiValue">13,929%</div>
+      </div>
+      <div class="result-card">
+        <div class="label">Payback Period</div>
+        <div class="value positive" id="paybackValue">18 days</div>
+      </div>
+      <div class="result-card">
+        <div class="label">ROI (without throughput)</div>
+        <div class="value positive" id="roiNoThroughput">1,429%</div>
+      </div>
+    </div>
+    <div class="breakdown">
+      <table>
+        <thead>
+          <tr><th>Lever</th><th>Monthly Value</th></tr>
+        </thead>
+        <tbody id="breakdownBody"></tbody>
+        <tfoot>
+          <tr><td>Total Monthly Benefit</td><td id="breakdownTotal"></td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <p>Proof of concept by <a href="https://www.ardotconsulting.com">ARDOT Consulting</a>.<br>
+    Built from the blog post <a href="https://www.ardotconsulting.com/blog/2026/08/24/the-real-roi-of-ai-automation-how-to-measure-it/">The Real ROI of AI Automation: How to Measure It</a>.</p>
+  </footer>
+</div>
+
+<script>
+function num(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function fmt(n) { return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 }); }
+
+function calcTimeSaved() {
+  const manualMin = num('manualMinutes');
+  const autoMin = num('autoMinutes');
+  const vol = num('taskVolume');
+  const rate = num('laborRate');
+  const hoursSaved = ((manualMin - autoMin) * vol) / 60;
+  const costSaved = hoursSaved * rate;
+  document.getElementById('timeSavedResult').innerHTML =
+    'Time saved: <strong>' + fmt(costSaved) + '/month</strong> (' + hoursSaved.toFixed(1) + ' hours saved)';
+  return costSaved;
+}
+
+function calcErrorReduction() {
+  const oldRate = num('oldErrorRate') / 100;
+  const newRate = num('newErrorRate') / 100;
+  const vol = num('errorVolume');
+  const cost = num('costPerError');
+  const saved = (oldRate - newRate) * vol * cost;
+  document.getElementById('errorResult').innerHTML =
+    'Error cost saved: <strong>' + fmt(saved) + '/month</strong>';
+  return Math.max(0, saved);
+}
+
+function calcThroughput() {
+  const oldCap = num('oldCapacity');
+  const newCap = num('newCapacity');
+  const revPerUnit = num('revenuePerUnit');
+  const util = num('utilization') / 100;
+  const addedCap = Math.max(0, newCap - oldCap);
+  const value = addedCap * util * revPerUnit;
+  document.getElementById('throughputResult').innerHTML =
+    'Throughput value: <strong>' + fmt(value) + '/month</strong>';
+  return value;
+}
+
+function calcRetention() {
+  const empCount = num('employeeCount');
+  const oldTurn = num('oldTurnover') / 100;
+  const newTurn = num('newTurnover') / 100;
+  const replaceCost = num('replacementCost');
+  const oldCost = empCount * oldTurn * replaceCost;
+  const newCost = empCount * newTurn * replaceCost;
+  const savedAnnual = oldCost - newCost;
+  const savedMonthly = savedAnnual / 12;
+  document.getElementById('retentionResult').innerHTML =
+    'Retention value: <strong>' + fmt(savedMonthly) + '/month</strong>';
+  return Math.max(0, savedMonthly);
+}
+
+function calcTotalCost() {
+  const total = num('costSoftware') + num('costDev') + num('costMaintenance') + num('costOther');
+  document.getElementById('costResult').innerHTML =
+    'Total monthly cost: <strong>' + fmt(total) + '/month</strong>';
+  return total;
+}
+
+function recalc() {
+  const timeSaved = calcTimeSaved();
+  const errorRed = calcErrorReduction();
+  const throughput = calcThroughput();
+  const retention = calcRetention();
+  const totalBenefit = timeSaved + errorRed + throughput + retention;
+  const totalCost = calcTotalCost();
+  const netGain = totalBenefit - totalCost;
+  const roi = totalCost > 0 ? (netGain / totalCost) * 100 : 0;
+  const upfront = num('upfrontCost');
+  const benefitNoThroughput = timeSaved + errorRed + retention;
+  const roiNoThroughput = totalCost > 0 ? ((benefitNoThroughput - totalCost) / totalCost) * 100 : 0;
+
+  // Payback period
+  let paybackStr;
+  if (totalBenefit > 0 && upfront > 0) {
+    const months = upfront / totalBenefit;
+    if (months < 1) {
+      const days = Math.round(months * 30);
+      paybackStr = days + ' days';
+    } else {
+      paybackStr = months.toFixed(1) + ' months';
+    }
+  } else if (upfront === 0) {
+    paybackStr = 'Immediate';
+  } else {
+    paybackStr = '—';
+  }
+
+  document.getElementById('totalBenefit').textContent = fmt(totalBenefit);
+  document.getElementById('totalCost').textContent = fmt(totalCost);
+  document.getElementById('netGain').textContent = fmt(netGain);
+  document.getElementById('netGain').className = 'value ' + (netGain >= 0 ? 'positive' : 'negative');
+  document.getElementById('roiValue').textContent = roi.toLocaleString('en-US', { maximumFractionDigits: 0 }) + '%';
+  document.getElementById('roiValue').className = 'value ' + (roi >= 0 ? 'positive' : 'negative');
+  document.getElementById('paybackValue').textContent = paybackStr;
+  document.getElementById('roiNoThroughput').textContent = roiNoThroughput.toLocaleString('en-US', { maximumFractionDigits: 0 }) + '%';
+
+  // Breakdown table
+  const rows = [
+    ['Time Saved', timeSaved],
+    ['Error Reduction', errorRed],
+    ['Throughput Increase', throughput],
+    ['Employee Retention', retention],
+  ];
+  document.getElementById('breakdownBody').innerHTML =
+    rows.map(r => '<tr><td>' + r[0] + '</td><td>' + fmt(r[1]) + '</td></tr>').join('');
+  document.getElementById('breakdownTotal').textContent = fmt(totalBenefit);
+}
+
+const presets = {
+  accounting: { manualMinutes:8, autoMinutes:1, taskVolume:200, laborRate:35,
+    oldErrorRate:0, newErrorRate:0, errorVolume:0, costPerError:0,
+    oldCapacity:0, newCapacity:0, revenuePerUnit:0, utilization:0,
+    employeeCount:0, oldTurnover:0, newTurnover:0, replacementCost:0,
+    costSoftware:20, costDev:200, costMaintenance:100, costOther:0, upfrontCost:3000 },
+  ecommerce: { manualMinutes:5, autoMinutes:1, taskVolume:500, laborRate:25,
+    oldErrorRate:8, newErrorRate:1, errorVolume:500, costPerError:45,
+    oldCapacity:0, newCapacity:0, revenuePerUnit:0, utilization:0,
+    employeeCount:0, oldTurnover:0, newTurnover:0, replacementCost:0,
+    costSoftware:20, costDev:150, costMaintenance:80, costOther:0, upfrontCost:2000 },
+  consulting: { manualMinutes:30, autoMinutes:10, taskVolume:40, laborRate:75,
+    oldErrorRate:5, newErrorRate:1, errorVolume:40, costPerError:200,
+    oldCapacity:40, newCapacity:80, revenuePerUnit:2000, utilization:50,
+    employeeCount:15, oldTurnover:20, newTurnover:10, replacementCost:15000,
+    costSoftware:20, costDev:200, costMaintenance:100, costOther:0, upfrontCost:3000 },
+  law: { manualMinutes:180, autoMinutes:45, taskVolume:22, laborRate:150,
+    oldErrorRate:3, newErrorRate:1, errorVolume:100, costPerError:100,
+    oldCapacity:0, newCapacity:0, revenuePerUnit:0, utilization:0,
+    employeeCount:6, oldTurnover:15, newTurnover:10, replacementCost:20000,
+    costSoftware:20, costDev:200, costMaintenance:100, costOther:0, upfrontCost:2400 },
+};
+
+function loadPreset(name) {
+  const p = presets[name];
+  if (!p) return;
+  for (const [k, v] of Object.entries(p)) {
+    const el = document.getElementById(k);
+    if (el) el.value = v;
+  }
+  recalc();
+}
+
+function resetForm() {
+  document.querySelectorAll('input[type=number]').forEach(el => el.value = 0);
+  recalc();
+}
+
+// Recalculate on any input change
+document.querySelectorAll('input[type=number]').forEach(el => {
+  el.addEventListener('input', recalc);
+});
+
+// Initial calculation
+recalc();
+</script>
+</body>
+</html>
